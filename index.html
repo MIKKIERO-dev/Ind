@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#171620">
+<title>Fairy Store</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#171620;--bg2:#1e1c29;--card:#282536;--glow:#8d89bd;--a1:#f0f2f8;--a2:#b5bccd;--tx:#e8e6f0;--mu:#a09bb4;--line:rgba(255,255,255,.08);--edge:rgba(255,255,255,.24);--top:0px;--bot:0px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden;transition:background .4s}
+body{position:relative}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--glow) 16%,transparent),transparent 60%),radial-gradient(80% 50% at 100% 100%,color-mix(in srgb,var(--glow) 9%,transparent),transparent 70%),linear-gradient(180deg,var(--bg),var(--bg2));transition:background .4s}
+.bg::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:44px 44px;background-position:center top;-webkit-mask-image:radial-gradient(ellipse 85% 70% at 50% 35%,#000 15%,transparent 100%);mask-image:radial-gradient(ellipse 85% 70% at 50% 35%,#000 15%,transparent 100%)}
+.app{position:relative;z-index:1;height:100%}
+.tab{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:calc(var(--top) + 20px) 18px calc(130px + var(--bot));display:none;-webkit-overflow-scrolling:touch}
+.tab.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.wrap{max-width:560px;margin:0 auto}
+.eyebrow{font-size:13px;letter-spacing:.42em;color:var(--mu);font-weight:700}
+h1{font-size:38px;font-weight:800;letter-spacing:-.02em;margin:10px 0 6px}
+.sub{color:var(--mu);font-size:16px;margin-bottom:20px;line-height:1.4}
+.card{position:relative;background:linear-gradient(160deg,color-mix(in srgb,var(--card) 85%,transparent),color-mix(in srgb,var(--bg2) 90%,transparent));border:1px solid transparent;border-radius:28px;padding:20px;margin-bottom:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 14px rgba(255,255,255,.04)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ct{font-size:19px;font-weight:700}
+.cm{color:var(--mu);font-size:15px}
+.bar{height:10px;border-radius:6px;background:rgba(255,255,255,.07);margin:14px 0 12px;overflow:hidden}
+.bar b{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--a2),var(--a1));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:999px;padding:18px;font-size:18px;font-weight:700;color:#14131d;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 6px 18px color-mix(in srgb,var(--a2) 22%,transparent);cursor:pointer;transition:transform .15s,filter .15s;font-family:inherit}
+.btn svg{width:20px;height:20px;flex:none}
+.btn:active{transform:scale(.97);filter:brightness(.92)}
+.btn.sm{width:auto;padding:14px 20px;font-size:16px;border-radius:18px}
+.btn[disabled]{opacity:.6}
+.link{background:rgba(0,0,0,.35);border:1px solid transparent;border-radius:18px;padding:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;word-break:break-all;display:flex;align-items:center;gap:10px;margin:16px 0 12px}
+.link span{flex:1}
+.ico{width:38px;height:38px;border-radius:12px;border:1px solid transparent;background:rgba(255,255,255,.06);color:var(--tx);display:grid;place-items:center;cursor:pointer;flex:none;transition:transform .15s}
+.ico:active{transform:scale(.9)}
+.ico svg{width:18px;height:18px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stats.t3{grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.st{background:rgba(255,255,255,.04);border:1px solid transparent;border-radius:22px;padding:18px 8px;text-align:center}
+.st b{display:block;font-size:30px;font-weight:800}
+.st small{display:block;margin-top:8px;font-size:12px;letter-spacing:.16em;color:var(--mu);text-transform:uppercase}
+.hist{margin-top:14px;color:var(--mu);font-size:14px;text-align:center}
+.hist div{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);color:var(--tx)}
+.who{display:flex;align-items:center;gap:18px;margin:18px 0 22px}
+.av{width:82px;height:82px;border-radius:50%;border:2px solid var(--line);background:linear-gradient(135deg,var(--a2),var(--a1));display:grid;place-items:center;font-size:32px;font-weight:800;color:#14131d;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.who h2{font-size:26px;font-weight:800;word-break:break-word}
+.who p{color:var(--mu);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;margin-top:6px;font-size:15px}
+.bal{text-align:center;padding:34px 20px;border-radius:34px}
+.bal small{letter-spacing:.35em;color:var(--mu);font-size:14px}
+.bal b{display:block;font-size:64px;font-weight:800;margin-top:14px}
+.bal b span{font-size:30px;color:var(--mu);margin-left:6px}
+.promo{display:flex;gap:10px;padding:12px;border-radius:26px}
+.promo input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid transparent;border-radius:18px;padding:0 18px;font-size:17px;color:var(--tx);outline:0;font-family:inherit;height:56px;text-transform:uppercase}
+.promo input::placeholder{text-transform:none;color:var(--mu)}
+.promo input:focus{border-color:transparent}
+.promo .btn{width:auto;padding:0 22px;border-radius:18px;font-size:16px;height:56px}
+.msg{min-height:0;font-size:14px;color:var(--mu);margin:-6px 6px 14px;text-align:center}
+.swg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:16px}
+.sw{aspect-ratio:1;border-radius:50%;border:0;cursor:pointer;outline:2px solid transparent;outline-offset:3px;transition:transform .15s,outline-color .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 3px 10px rgba(0,0,0,.22)}
+.sw:active{transform:scale(.92)}
+.sw.on{outline-color:var(--tx)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip{display:flex;align-items:center;gap:9px;padding:13px 18px;border-radius:999px;border:1px solid transparent;background:rgba(255,255,255,.04);color:var(--mu);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.chip i{width:14px;height:14px;border-radius:50%}
+.chip.on{color:var(--tx);background:rgba(255,255,255,.12)}
+.menu{display:flex;align-items:center;gap:14px;width:100%;padding:18px 20px;border-radius:26px;border:1px solid transparent;background:linear-gradient(160deg,color-mix(in srgb,var(--card) 85%,transparent),color-mix(in srgb,var(--bg2) 90%,transparent));color:var(--tx);font-size:18px;font-weight:700;margin-bottom:12px;cursor:pointer;font-family:inherit;transition:transform .15s}
+.menu:active{transform:scale(.98)}
+.menu .e{font-size:26px;width:34px;text-align:center}
+.menu .t{flex:1;text-align:center}
+.menu svg{width:18px;height:18px;color:var(--mu)}
+.sup{text-align:center;padding:34px 22px}
+.sup .big{width:92px;height:92px;margin:0 auto 20px;border-radius:30px;display:grid;place-items:center;font-size:46px;background:linear-gradient(135deg,color-mix(in srgb,var(--a2) 35%,transparent),color-mix(in srgb,var(--a1) 12%,transparent));border:1px solid transparent}
+.sup p{color:var(--mu);font-size:17px;line-height:1.5;margin-bottom:24px}
+.empty{min-height:55vh;display:grid;place-items:center}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + var(--bot));width:calc(100% - 28px);max-width:560px;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px;border-radius:34px;border:1px solid transparent;background:linear-gradient(135deg,color-mix(in srgb,var(--glow) 18%,rgba(36,33,50,.78)),rgba(28,26,40,.82));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 12px 32px rgba(0,0,0,.32)}
+.nb{border:0;background:transparent;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;border-radius:26px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .25s,color .25s,transform .15s}
+.nb span{font-size:24px;line-height:1;filter:saturate(.8)}
+.nb:active{transform:scale(.94)}
+.nb.on{background:rgba(255,255,255,.12);color:var(--tx);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.subv{position:fixed;inset:0;z-index:30;background:linear-gradient(180deg,var(--bg),var(--bg2));overflow-y:auto;padding:calc(var(--top) + 14px) 18px calc(40px + var(--bot));transform:translateX(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.subv.on{transform:none;visibility:visible}
+.head{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.head h1{margin:0;font-size:32px}
+.head p{color:var(--mu);margin-top:4px}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.bd{text-align:center;padding:18px 8px;border-radius:24px;border:1px solid transparent;background:rgba(255,255,255,.04)}
+.bd .e{font-size:38px;display:block;margin-bottom:8px}
+.bd b{font-size:13px;display:block;line-height:1.3}
+.bd.lock{opacity:.4;filter:grayscale(1)}
+.toast{position:fixed;left:50%;top:calc(var(--top) + 8px);transform:translate(-50%,-30px);opacity:0;z-index:50;background:rgba(48,44,66,.95);border:1px solid transparent;padding:13px 20px;border-radius:18px;font-size:15px;font-weight:600;max-width:90%;text-align:center;pointer-events:none;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(min-width:700px){h1{font-size:44px}}
+@media(max-width:360px){.swg{grid-template-columns:repeat(4,1fr)}.bal b{font-size:52px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* glass rim: thick+bright on top, thin+faint at bottom, fading toward sides */
+.card,.menu,.st,.bd,.link,.ico,.chip,.sup .big,.promo input,.nav,.toast{--rim-top:rgba(255,255,255,.62);--rim-mid:rgba(255,255,255,.2);--rim-bot:rgba(255,255,255,.07)}
+.menu,.st,.bd,.link,.ico,.chip,.sup .big{position:relative}
+.card::before,.menu::before,.st::before,.bd::before,.link::before,.ico::before,.chip::before,.sup .big::before,.nav::before,.toast::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
+background:linear-gradient(180deg,var(--rim-top) 0%,var(--rim-mid) 38%,var(--rim-bot) 100%);
+-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+/* extra thickness on the top edge that melts away along the sides */
+.menu,.st,.bd,.link,.ico,.chip,.sup .big{box-shadow:inset 0 1.5px 1.5px -1px rgba(255,255,255,.38)}
+.nav{box-shadow:0 12px 32px rgba(0,0,0,.32),inset 0 1.5px 1.5px -1px rgba(255,255,255,.38)}
+.toast{box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1.5px 1.5px -1px rgba(255,255,255,.38)}
+.card{box-shadow:0 8px 24px rgba(0,0,0,.22),inset 0 1.5px 1.5px -1px rgba(255,255,255,.38),inset 0 0 14px rgba(255,255,255,.04)}
+.promo input{border:0;box-shadow:none}
+
+/* ===== единый заголовок вкладок: одинаковое место и размер у всех ===== */
+.tab{padding:calc(var(--top) + 30px) 18px calc(118px + var(--bot))}
+.tab .eyebrow{font-size:11px;letter-spacing:.34em;line-height:1.2;margin:0}
+.tab h1{font-size:27px;line-height:1.15;margin:10px 0 6px}
+@media(min-width:700px){.tab h1{font-size:27px}}
+/* ===== compact scale: Задания / Поддержка / Профиль =====
+   Правятся только эти три вкладки (меню, подэкраны и магазин не затронуты) */
+:is(#tab-tasks,#tab-support,#tab-profile) .sub{font-size:14px;margin-bottom:14px}
+:is(#tab-tasks,#tab-support,#tab-profile) .card{border-radius:22px;padding:15px;margin-bottom:10px}
+:is(#tab-tasks,#tab-support,#tab-profile) .row{gap:10px}
+:is(#tab-tasks,#tab-support,#tab-profile) .ct{font-size:16px}
+:is(#tab-tasks,#tab-support,#tab-profile) .cm{font-size:13px}
+:is(#tab-tasks,#tab-support,#tab-profile) .bar{height:8px;margin:11px 0 9px}
+:is(#tab-tasks,#tab-support,#tab-profile) .btn{padding:13px;font-size:15px}
+:is(#tab-tasks,#tab-support,#tab-profile) .btn svg{width:17px;height:17px}
+:is(#tab-tasks,#tab-support,#tab-profile) .link{padding:11px;font-size:12px;border-radius:14px;margin:12px 0 10px;gap:8px}
+:is(#tab-tasks,#tab-support,#tab-profile) .ico{width:32px;height:32px;border-radius:10px}
+:is(#tab-tasks,#tab-support,#tab-profile) .ico svg{width:16px;height:16px}
+:is(#tab-tasks,#tab-support,#tab-profile) .stats,
+:is(#tab-tasks,#tab-support,#tab-profile) .stats.t3{gap:8px;margin-bottom:10px}
+:is(#tab-tasks,#tab-support,#tab-profile) .card .stats{margin-bottom:12px}
+:is(#tab-tasks,#tab-support,#tab-profile) .st{border-radius:18px;padding:13px 6px}
+:is(#tab-tasks,#tab-support,#tab-profile) .st b{font-size:22px}
+:is(#tab-tasks,#tab-support,#tab-profile) .st small{font-size:10px;margin-top:5px;letter-spacing:.12em}
+:is(#tab-tasks,#tab-support,#tab-profile) .hist{margin-top:10px;font-size:13px}
+:is(#tab-tasks,#tab-support,#tab-profile) .hist div{padding:8px 0}
+/* профиль */
+#profileView .who{gap:14px;margin:12px 0 16px}
+#profileView .av{width:62px;height:62px;font-size:24px}
+#profileView .who h2{font-size:20px}
+#profileView .who p{font-size:12.5px;margin-top:4px}
+#profileView .bal{padding:22px 16px;border-radius:26px}
+#profileView .bal small{font-size:12px}
+#profileView .bal b{font-size:46px;margin-top:8px}
+#profileView .bal b span{font-size:22px;margin-left:4px}
+#profileView #topBtn{margin-bottom:10px!important}
+#profileView .promo{gap:8px;padding:9px;border-radius:20px;margin-bottom:6px}
+#profileView .promo input{height:44px;font-size:14px;border-radius:14px;padding:0 14px}
+#profileView .promo .btn{height:44px;padding:0 16px;font-size:14px;border-radius:14px}
+#profileView .msg{font-size:12px;margin:0 6px 10px}
+#profileView .swg{gap:9px;margin-top:12px;grid-template-columns:repeat(6,1fr)}
+#profileView .chips{gap:8px;margin-top:12px}
+#profileView .chip{padding:9px 14px;font-size:13px;gap:7px}
+#profileView .chip i{width:11px;height:11px}
+/* поддержка */
+#supportView .sup{padding:24px 18px}
+#supportView .sup .big{width:68px;height:68px;border-radius:22px;font-size:34px;margin-bottom:14px}
+#supportView .sup p{font-size:14.5px;margin-bottom:18px}
+@media(max-width:360px){#profileView .bal b{font-size:40px}#profileView .swg{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+<div class="app">
+<section class="tab on" id="tab-shop"><div class="wrap"><div class="eyebrow">FAIRY STORE</div><h1>Магазин</h1></div></section>
+<section class="tab" id="tab-tasks"><div class="wrap" id="tasksView"></div></section>
+<section class="tab" id="tab-support"><div class="wrap" id="supportView"></div></section>
+<section class="tab" id="tab-profile"><div class="wrap" id="profileView"></div></section>
+</div>
+<div class="subv" id="subPay"><div class="wrap" id="payView"></div></div>
+<nav class="nav" id="nav">
+<button class="nb on" data-tab="shop"><span>🛒</span>Магазин</button>
+<button class="nb" data-tab="tasks"><span>🧸</span>Задания</button>
+<button class="nb" data-tab="support"><span>🛟</span>Поддержка</button>
+<button class="nb" data-tab="profile"><span>🪪</span>Профиль</button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+const APP_CONFIG={
+appName:'Fairy Store',
+botUsername:'BOT_USERNAME',
+supportUrl:'https://t.me/m/PKcqlvA-Njcx',
+links:{channel:'',reviews:'',rules:''},
+referralPercent:3,
+demoMode:true,
+apiBase:'',
+shareText:'Заходи в Fairy Store',
+texts:{
+tasksTitle:'Задания',
+tasksSubtitle:'Выполняй задания — получай подарки и деньги на баланс',
+supportText:'Если у вас есть вопросы или возникли проблемы, напишите в нашу службу поддержки. Мы постараемся помочь вам как можно скорее.',
+payNotReady:'Платёжная система пока не подключена',
+promoNotReady:'Проверка промокодов пока не подключена',
+sectionNotReady:'Раздел пока не подключён'
+},
+demo:{
+user:{id:1890263091,name:'XAP4KTEP',username:'XAP4KTEP',photo:''},
+balance:0,
+stats:{orders:0,referrals:1,refEarned:0},
+referral:{code:'ABC123',invited:1,earned:0,history:[]},
+tasks:{gifts:{done:0,total:4,people:0,peopleNeeded:5},streak:{done:0,total:7,joined:false}},
+payments:[]
+}
+};
+const COLORS=[
+{id:'silver',n:'Серебристый',c:['#f0f2f8','#b5bccd']},
+{id:'steel',n:'Серо-голубой',c:['#b2c1d3','#7f90a7']},
+{id:'sky',n:'Светло-голубой',c:['#b2d2e4','#7099b4']},
+{id:'periwinkle',n:'Васильковый',c:['#b0bdf0','#6f82c8']},
+{id:'lavender',n:'Лавандовый',c:['#c1b6df','#8c7fb5']},
+{id:'lilac',n:'Сиреневый',c:['#d0b3dc','#9f7fb0']},
+{id:'pink',n:'Розовый',c:['#ecbac3','#c08694']},
+{id:'peach',n:'Персиковый',c:['#ecc3ae','#c28f77']},
+{id:'sand',n:'Песочный',c:['#dccfae','#a99872']},
+{id:'green',n:'Зелёный',c:['#b6d0ae','#7c9f74']},
+{id:'mint',n:'Мятный',c:['#b2dacb','#74ab97']},
+{id:'teal',n:'Бирюзовый',c:['#a6dcdc','#5fa6aa']}
+];
+const SEASONS=[
+{id:'random',n:'Случайная'},
+{id:'sept1',n:'Первое сентября',dot:'#c9b27c',v:{bg:'#1c1812',bg2:'#262017',card:'#322a1e',glow:'#bf9f5c'}},
+{id:'leaf',n:'Листопад',dot:'#d9a27c',v:{bg:'#1e1511',bg2:'#291d15',card:'#36261b',glow:'#cc8050'}},
+{id:'rowan',n:'Рябина',dot:'#d9929c',v:{bg:'#1e141a',bg2:'#291b24',card:'#36242f',glow:'#bd5f72'}},
+{id:'rain',n:'Дождливый сентябрь',dot:'#9fb3c8',v:{bg:'#131a21',bg2:'#1a2430',card:'#223140',glow:'#6e90b3'}},
+{id:'normal',n:'Обычная',v:{bg:'#171620',bg2:'#1e1c29',card:'#282536',glow:'#8d89bd'}}
+];
+const tg=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData!==undefined?window.Telegram.WebApp:null;
+const state={user:null,balance:0,stats:null,referral:null,history:[],tasks:null,payments:[],tab:'shop',sub:null,color:'silver',season:'normal'};
+const ICON={copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n||0).toLocaleString('ru-RU');
+let toastTimer=0;
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('on'),2400)}
+function haptic(k){try{if(tg&&tg.HapticFeedback){k==='ok'?tg.HapticFeedback.notificationOccurred('success'):tg.HapticFeedback.impactOccurred('light')}}catch(e){}}
+async function api(path,opts){
+const o=opts||{};
+const headers={'Content-Type':'application/json'};
+if(tg&&tg.initData)headers['X-Telegram-Init-Data']=tg.initData;
+const r=await fetch(APP_CONFIG.apiBase+path,{method:o.method||'GET',headers,body:o.body?JSON.stringify(o.body):undefined});
+if(!r.ok)throw new Error('HTTP '+r.status);
+return r.json();
+}
+function initTelegramApp(){
+if(!tg)return;
+try{tg.ready();tg.expand();tg.setHeaderColor&&tg.setHeaderColor('#100F19');tg.setBackgroundColor&&tg.setBackgroundColor('#100F19')}catch(e){}
+const apply=()=>{
+const s=tg.safeAreaInset||{top:0,bottom:0};
+const c=tg.contentSafeAreaInset||{top:0,bottom:0};
+const top=(s.top||0)+(c.top||0);
+document.documentElement.style.setProperty('--top',(top>0?top:(tg.isFullscreen?56:0))+'px');
+document.documentElement.style.setProperty('--bot',((s.bottom||0)+(c.bottom||0))+'px');
+};
+apply();
+try{tg.onEvent('safeAreaChanged',apply);tg.onEvent('contentSafeAreaChanged',apply)}catch(e){}
+try{tg.BackButton.onClick(closeSub)}catch(e){}
+}
+async function getUserData(){
+if(!APP_CONFIG.demoMode){return api('/api/user')}
+const tu=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;
+if(tu){return{id:tu.id,name:[tu.first_name,tu.last_name].filter(Boolean).join(' '),username:tu.username||'',photo:tu.photo_url||''}}
+return APP_CONFIG.demo.user;
+}
+async function getBalance(){
+if(!APP_CONFIG.demoMode){const d=await api('/api/balance');return d.balance}
+return APP_CONFIG.demo.balance;
+}
+async function getReferralData(){
+if(!APP_CONFIG.demoMode){return api('/api/referral')}
+const r=APP_CONFIG.demo.referral;
+return{link:'https://t.me/'+APP_CONFIG.botUsername+'?start=ref_'+r.code,invited:r.invited,earned:r.earned,percent:APP_CONFIG.referralPercent,stats:APP_CONFIG.demo.stats};
+}
+async function getReferralHistory(){
+if(!APP_CONFIG.demoMode){return api('/api/referral/history')}
+return APP_CONFIG.demo.referral.history;
+}
+async function getTasks(){
+if(!APP_CONFIG.demoMode){return api('/api/tasks')}
+return APP_CONFIG.demo.tasks;
+}
+async function getPayments(){
+if(!APP_CONFIG.demoMode){return api('/api/payments')}
+return APP_CONFIG.demo.payments;
+}
+async function activatePromoCode(code){
+if(!APP_CONFIG.demoMode){return api('/api/promo',{method:'POST',body:{code}})}
+return{ok:false,message:APP_CONFIG.texts.promoNotReady};
+}
+async function refreshStats(){
+const r=await Promise.all([getUserData(),getBalance(),getReferralData(),getReferralHistory(),getTasks(),getPayments()]);
+state.user=r[0];state.balance=r[1];state.referral=r[2];state.history=r[3]||[];state.tasks=r[4];state.payments=r[5]||[];
+state.stats=r[2].stats||{orders:0,referrals:r[2].invited,refEarned:r[2].earned};
+renderAll();
+}
+function openTopUp(){toast(APP_CONFIG.texts.payNotReady)}
+function openLink(url){
+if(!url){toast(APP_CONFIG.texts.sectionNotReady);return}
+try{
+if(tg&&/^https:\/\/(t\.me|telegram\.me)\//.test(url)&&tg.openTelegramLink){tg.openTelegramLink(url)}
+else if(tg&&tg.openLink){tg.openLink(url)}
+else{window.open(url,'_blank','noopener')}
+}catch(e){window.open(url,'_blank','noopener')}
+}
+async function copyText(t){
+try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}
+try{
+const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(a);a.focus();a.select();
+const ok=document.execCommand('copy');document.body.removeChild(a);return ok;
+}catch(e){return false}
+}
+async function copyRef(){
+const ok=await copyText(state.referral.link);
+haptic('ok');
+toast(ok?'Ссылка скопирована':'Не удалось скопировать ссылку');
+}
+async function inviteFriends(){
+const link=state.referral.link;
+if(tg&&tg.openTelegramLink){
+openLink('https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(APP_CONFIG.shareText));
+return;
+}
+const ok=await copyText(link);
+toast(ok?'Ссылка скопирована — отправьте её друзьям':'Скопируйте ссылку вручную');
+}
+function renderTasks(){
+const t=state.tasks,r=state.referral,tx=APP_CONFIG.texts;
+const g=t.gifts,s=t.streak;
+const gp=g.total?Math.min(100,g.done/g.total*100):0;
+const sp=s.total?Math.min(100,s.done/s.total*100):0;
+const hist=state.history.length?'<div class="hist">'+state.history.map(h=>'<div><span>'+esc(h.title||'Начисление')+'</span><b>+'+fmt(h.amount)+' ₽</b></div>').join('')+'</div>':'<div class="hist">Начислений пока нет</div>';
+$('tasksView').innerHTML=
+'<div class="eyebrow">FAIRY STORE</div><h1>'+esc(tx.tasksTitle)+'</h1><p class="sub">'+esc(tx.tasksSubtitle)+'</p>'+
+'<div class="card"><div class="row"><div class="ct">Бесплатные подарки</div><div class="cm">'+g.done+'/'+g.total+'</div></div><div class="bar"><b data-w="'+gp+'"></b></div><div class="cm">'+g.people+' из '+g.peopleNeeded+' чел.</div></div>'+
+'<div class="card"><div class="row"><div class="ct">🔥 Стрик покупок</div><div class="cm">'+s.done+'/'+s.total+'</div></div><div class="bar"><b data-w="'+sp+'"></b></div><div class="cm">'+(s.joined?'Серия идёт':'Нужно вступить в акцию')+'</div></div>'+
+'<div class="card"><div class="row"><div class="ct">Реферальная программа</div><div class="ct">'+esc(r.percent)+'%</div></div>'+
+'<p class="cm" style="margin-top:10px;line-height:1.45">Процент с каждой покупки тех, кто впервые пришёл по твоей ссылке.</p>'+
+'<div class="link"><span id="refLink">'+esc(r.link)+'</span><button class="ico" id="copyBtn" aria-label="Копировать">'+ICON.copy+'</button></div>'+
+'<div class="stats"><div class="st"><b>'+fmt(r.invited)+'</b><small>Приглашено</small></div><div class="st"><b>'+fmt(r.earned)+' ₽</b><small>Заработано</small></div></div>'+
+'<button class="btn" id="inviteBtn">'+ICON.share+'Позвать друзей</button>'+hist+'</div>';
+$('copyBtn').onclick=copyRef;
+$('inviteBtn').onclick=()=>{haptic();inviteFriends()};
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#tasksView .bar b').forEach(b=>b.style.width=b.dataset.w+'%')));
+}
+function renderSupport(){
+$('supportView').innerHTML=
+'<div class="eyebrow">FAIRY STORE</div><h1>Поддержка</h1><div style="height:14px"></div>'+
+'<div class="card sup"><div class="big">🛟</div><p>'+esc(APP_CONFIG.texts.supportText)+'</p><button class="btn" id="supBtn">Перейти</button></div>';
+$('supBtn').onclick=()=>{haptic();openLink(APP_CONFIG.supportUrl)};
+}
+function avatarHtml(u){
+const ch=esc((u.name||u.username||'?').trim().charAt(0).toUpperCase());
+return u.photo?'<div class="av"><img src="'+esc(u.photo)+'" alt="" id="avImg"></div>':'<div class="av">'+ch+'</div>';
+}
+function renderProfile(){
+const u=state.user,s=state.stats;
+$('profileView').innerHTML=
+'<div class="eyebrow">FAIRY STORE</div><h1>Профиль</h1>'+
+'<div class="who">'+avatarHtml(u)+'<div><h2>'+esc(u.name||('@'+u.username))+'</h2>'+(u.username?'<div class="cm" style="margin-top:2px">@'+esc(u.username)+'</div>':'')+'<p>ID '+esc(u.id)+'</p></div></div>'+
+'<div class="card bal"><small>БАЛАНС</small><b>'+fmt(state.balance)+'<span>₽</span></b></div>'+
+'<button class="btn" id="topBtn" style="margin-bottom:14px">Пополнить баланс</button>'+
+'<div class="card promo"><input id="promoIn" placeholder="Промокод" maxlength="40" autocomplete="off" autocapitalize="characters"><button class="btn" id="promoBtn">Применить</button></div><div class="msg" id="promoMsg"></div>'+
+'<div class="stats t3"><div class="st"><b>'+fmt(s.orders)+'</b><small>Заказов</small></div><div class="st"><b>'+fmt(s.referrals)+'</b><small>Рефералов</small></div><div class="st"><b>'+fmt(s.refEarned)+' ₽</b><small>₽ с рефок</small></div></div>'+
+'<div class="card"><div class="row"><div class="ct">Цвет приложения</div><div class="cm" id="colorName"></div></div><div class="swg" id="swg"></div></div>'+
+'<div class="card"><div class="row"><div class="ct">Сезонная тема</div><div class="cm" id="seasonName"></div></div><div class="chips" id="chips"></div></div>';
+$('topBtn').onclick=()=>{haptic();openTopUp()};
+$('promoBtn').onclick=applyPromo;
+$('promoIn').addEventListener('keydown',e=>{if(e.key==='Enter')applyPromo()});
+const img=$('avImg');if(img)img.onerror=()=>{img.parentNode.innerHTML=esc((u.name||'?').charAt(0).toUpperCase())};
+renderThemeControls();
+}
+async function applyPromo(){
+const inp=$('promoIn'),btn=$('promoBtn'),msg=$('promoMsg');
+const code=inp.value.trim();
+if(!code){msg.textContent='Введите промокод';msg.style.color='#e8a0a0';return}
+btn.disabled=true;btn.textContent='Проверка…';msg.style.color='';msg.textContent='Проверяем промокод…';
+try{
+const r=await activatePromoCode(code);
+msg.textContent=r.message||(r.ok?'Промокод применён':'Промокод не принят');
+msg.style.color=r.ok?'#9fd9b4':'#e8a0a0';
+if(r.ok){inp.value='';haptic('ok');refreshStats()}
+}catch(e){msg.textContent='Не удалось проверить промокод. Попробуйте позже';msg.style.color='#e8a0a0'}
+btn.disabled=false;btn.textContent='Применить';
+}
+function renderPay(){
+const p=state.payments;
+const body=p.length?p.map(x=>'<div class="card"><div class="row"><div class="ct">'+esc(x.title||'Платёж')+'</div><div class="ct">'+fmt(x.amount)+' ₽</div></div><div class="cm" style="margin-top:6px">'+esc(x.date||'')+(x.status?' · '+esc(x.status):'')+'</div></div>').join(''):'<div class="card sup"><div class="big">🧾</div><div class="ct" style="margin-bottom:8px">Платежей пока нет</div><p style="margin:0">Здесь появится история ваших пополнений и покупок</p></div>';
+$('payView').innerHTML='<div class="head"><button class="ico" id="payBack" aria-label="Назад" style="width:46px;height:46px;border-radius:50%">'+ICON.back+'</button><div><h1>Мои платежи</h1><p>История операций</p></div></div>'+body+'<button class="btn" id="payBtn" style="margin-top:6px">Вернуться в профиль</button>';
+$('payBack').onclick=closeSub;$('payBtn').onclick=closeSub;
+}
+function openSub(n){
+renderPay();
+state.sub=n;$('sub'+n).classList.add('on');$('sub'+n).scrollTop=0;
+try{tg&&tg.BackButton.show()}catch(e){}
+}
+function closeSub(){
+if(!state.sub)return;
+$('sub'+state.sub).classList.remove('on');state.sub=null;
+try{tg&&tg.BackButton.hide()}catch(e){}
+}
+function switchTab(t){
+if(state.sub)closeSub();
+state.tab=t;
+document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.id==='tab-'+t));
+document.querySelectorAll('.nb').forEach(x=>x.classList.toggle('on',x.dataset.tab===t));
+const el=$('tab-'+t);el.scrollTop=0;
+if(t==='tasks')renderTasks();
+}
+function resolveSeason(){
+if(state.season!=='random')return state.season;
+const list=SEASONS.filter(s=>s.v);
+return list[Math.floor(Math.random()*list.length)].id;
+}
+let activeSeason='normal';
+function applyTheme(){
+const col=COLORS.find(c=>c.id===state.color)||COLORS[0];
+const sea=SEASONS.find(s=>s.id===activeSeason)||SEASONS[5];
+const r=document.documentElement.style;
+const mix=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(a),y=p(b);return '#'+x.map((v,i)=>Math.round(v*(1-t)+y[i]*t).toString(16).padStart(2,'0')).join('')};
+const tint=col.c[1];
+r.setProperty('--a1',col.c[0]);r.setProperty('--a2',col.c[1]);
+r.setProperty('--bg',sea.v.bg);
+r.setProperty('--bg2',sea.v.bg2);
+r.setProperty('--card',mix(sea.v.card,tint,.22));
+r.setProperty('--glow',sea.v.glow);
+r.setProperty('--line',col.c[0]+'26');
+r.setProperty('--mu',mix('#a09bb4',col.c[0],.35));
+const bgc=sea.v.bg;
+const m=document.querySelector('meta[name=theme-color]');if(m)m.content=bgc;
+try{tg&&tg.setHeaderColor&&tg.setHeaderColor(bgc);tg&&tg.setBackgroundColor&&tg.setBackgroundColor(bgc)}catch(e){}
+}
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function renderThemeControls(){
+const sw=$('swg');if(!sw)return;
+sw.innerHTML=COLORS.map(c=>'<button class="sw'+(c.id===state.color?' on':'')+'" data-id="'+c.id+'" aria-label="'+c.n+'" style="background:linear-gradient(145deg,'+c.c[0]+','+c.c[1]+')"></button>').join('');
+sw.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{state.color=b.dataset.id;store('fs_color',state.color);haptic();applyTheme();renderThemeControls()});
+$('colorName').textContent=(COLORS.find(c=>c.id===state.color)||COLORS[0]).n;
+$('chips').innerHTML=SEASONS.map(s=>'<button class="chip'+(s.id===state.season?' on':'')+'" data-id="'+s.id+'">'+(s.dot?'<i style="background:'+s.dot+'"></i>':'')+s.n+'</button>').join('');
+$('chips').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state.season=b.dataset.id;store('fs_season',state.season);activeSeason=resolveSeason();haptic();applyTheme();renderThemeControls()});
+const s=SEASONS.find(x=>x.id===state.season);
+$('seasonName').textContent=state.season==='random'?'Случайная · '+SEASONS.find(x=>x.id===activeSeason).n:s.n;
+}
+function renderAll(){renderTasks();renderSupport();renderProfile()}
+function buildBg(){
+const bg=$('bg');
+const cv=document.createElement('canvas');
+cv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+bg.appendChild(cv);
+const ctx=cv.getContext('2d');
+const dpr=Math.min(window.devicePixelRatio||1,2);
+const sprite=document.createElement('canvas');
+sprite.width=sprite.height=32;
+const sc=sprite.getContext('2d');
+const g=sc.createRadialGradient(16,16,0,16,16,16);
+g.addColorStop(0,'rgba(255,255,255,1)');
+g.addColorStop(.45,'rgba(255,255,255,.5)');
+g.addColorStop(1,'rgba(255,255,255,0)');
+sc.fillStyle=g;sc.fillRect(0,0,32,32);
+let w=0,h=0,flakes=[];
+const still=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+function make(fresh){
+const z=Math.random();
+return{x:Math.random()*w,y:fresh?-12:Math.random()*h,r:.9+z*1.9,v:12+z*22,a:.25+z*.5,ph:Math.random()*6.28,sw:5+Math.random()*14,sf:.25+Math.random()*.45}
+}
+function resize(){
+w=window.innerWidth;h=window.innerHeight;
+cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
+ctx.setTransform(dpr,0,0,dpr,0,0);
+const n=Math.max(35,Math.min(80,Math.round(w*h/18000)));
+while(flakes.length<n)flakes.push(make(false));
+flakes.length=n;
+}
+function draw(t){
+ctx.clearRect(0,0,w,h);
+for(const f of flakes){
+const x=f.x+Math.sin(t*f.sf+f.ph)*f.sw;
+ctx.globalAlpha=f.a;
+ctx.drawImage(sprite,x-f.r,f.y-f.r,f.r*2,f.r*2);
+}
+}
+let last=0;
+function tick(now){
+const dt=Math.min((now-last)/1000||0,.05);last=now;
+for(const f of flakes){
+f.y+=f.v*dt;
+if(f.y>h+12){Object.assign(f,make(true))}
+}
+draw(now/1000);
+requestAnimationFrame(tick);
+}
+resize();
+window.addEventListener('resize',resize);
+if(still){draw(0)}else{requestAnimationFrame(tick)}
+}
+function boot(){
+buildBg();
+const c=load('fs_color');if(c&&COLORS.some(x=>x.id===c))state.color=c;
+const s=load('fs_season');if(s&&SEASONS.some(x=>x.id===s))state.season=s;
+activeSeason=resolveSeason();
+applyTheme();
+initTelegramApp();
+document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>{haptic();switchTab(b.dataset.tab)});
+refreshStats().catch(()=>{toast('Не удалось загрузить данные')});
+}
+boot();
+</script>
+</body>
+</html>
